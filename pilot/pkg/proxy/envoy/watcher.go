@@ -150,3 +150,9 @@ func generateCertHash(h hash.Hash, certs []string) {
 		}
 	}
 }
+
+const (
+	// EpochFileTemplate is a template for the root config JSON
+	EpochFileTemplate = "envoy-rev%d.json"
+)
+

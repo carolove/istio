@@ -138,6 +138,7 @@ const (
 	DefaultIncludeIPRanges              = "*"
 	DefaultIncludeInboundPorts          = "*"
 	DefaultkubevirtInterfaces           = ""
+	DefaultIncludeOutboundPorts         = "*"
 )
 
 const (
@@ -217,6 +218,9 @@ type Params struct {
 	// Comma separated list of inbound ports. If set, inbound traffic will not be redirected for those ports.
 	// Exclusions are only applied if configured to redirect all inbound traffic. By default, no ports are excluded.
 	ExcludeInboundPorts string `json:"excludeInboundPorts"`
+
+	IncludeOutboundPorts string `json:"includeOutboundPorts"`
+	ExcludeOutboundPorts string `json:"excludeOutboundPorts"`
 	// Comma separated list of virtual interfaces whose inbound traffic (from VM) will be treated as outbound
 	// By default, no interfaces are configured.
 	KubevirtInterfaces string `json:"kubevirtInterfaces"`
@@ -228,6 +232,12 @@ func (p *Params) Validate() error {
 		return err
 	}
 	if err := ValidateExcludeIPRanges(p.ExcludeIPRanges); err != nil {
+		return err
+	}
+	if err := ValidateIncludeOutboundPorts(p.IncludeOutboundPorts); err != nil {
+		return err
+	}
+	if err := ValidateExcludeOutboundPorts(p.ExcludeOutboundPorts); err != nil {
 		return err
 	}
 	if err := ValidateIncludeInboundPorts(p.IncludeInboundPorts); err != nil {
@@ -357,6 +367,24 @@ func ValidateExcludeInboundPorts(ports string) error {
 func validateStatusPort(port string) error {
 	if _, e := parsePort(port); e != nil {
 		return fmt.Errorf("excludeInboundPorts invalid: %v", e)
+	}
+	return nil
+}
+
+// ValidateIncludeOutboundPorts validates the includeOutboundPorts parameter
+func ValidateIncludeOutboundPorts(ports string) error {
+	if ports != "*" {
+		if e := validatePortList("includeOutboundPorts", ports); e != nil {
+			return fmt.Errorf("includeOutboundPorts invalid: %v", e)
+		}
+	}
+	return nil
+}
+
+// ValidateExcludeOutboundPorts validates the excludeOutboundPorts parameter
+func ValidateExcludeOutboundPorts(ports string) error {
+	if e := validatePortList("excludeOutboundPorts", ports); e != nil {
+		return fmt.Errorf("excludeOutboundPorts invalid: %v", e)
 	}
 	return nil
 }

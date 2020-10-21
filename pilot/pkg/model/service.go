@@ -169,6 +169,9 @@ const (
 	// ProtocolMySQL declares that the port carries MySQL traffic.
 	ProtocolMySQL Protocol = "MySQL"
 	// ProtocolUnsupported - value to signify that the protocol is unsupported.
+	// ProtocolX declares that the port carries whatever protocol traffic
+	ProtocolX Protocol = "X"
+	// ProtocolUnsupported - value to signify that the protocol is unsupported
 	ProtocolUnsupported Protocol = "UnsupportedProtocol"
 )
 
@@ -242,6 +245,8 @@ func ParseProtocol(s string) Protocol {
 		return ProtocolRedis
 	case "mysql":
 		return ProtocolMySQL
+	case "x":
+		return ProtocolX
 	}
 
 	return ProtocolUnsupported
@@ -267,10 +272,21 @@ func (p Protocol) IsHTTP() bool {
 	}
 }
 
+
 // IsTCP is true for protocols that use TCP as transport protocol
 func (p Protocol) IsTCP() bool {
 	switch p {
 	case ProtocolTCP, ProtocolHTTPS, ProtocolTLS, ProtocolMongo, ProtocolRedis, ProtocolMySQL:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsX is true for protocols that use X as transport protocol
+func (p Protocol) IsX() bool {
+	switch p {
+	case ProtocolX:
 		return true
 	default:
 		return false
