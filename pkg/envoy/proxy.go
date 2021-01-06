@@ -45,9 +45,23 @@ type envoy struct {
 }
 
 type ProxyConfig struct {
-	Config              meshconfig.ProxyConfig
-	Node                string
-	LogLevel            string
+	Config   meshconfig.ProxyConfig
+	Node     string
+	LogLevel string
+
+	Mode                 string
+	DaprHttpPort         string
+	DaprGrpcPort         string
+	DaprInternalGrpcPort string
+	AppPort              string
+	AppId                string
+	ControlPlaneAddress  string
+	AppProtocol          string
+	PlacementHostAddress string
+	AppMaxConcurrency    string
+	SentryAddress        string
+	MetricsPort          string
+
 	ComponentLogLevel   string
 	PilotSubjectAltName []string
 	MixerSubjectAltName []string
@@ -74,6 +88,18 @@ func NewProxy(cfg ProxyConfig) Proxy {
 	if cfg.ComponentLogLevel != "" {
 		args = append(args, "--component-log-level", cfg.ComponentLogLevel)
 	}
+	args = append(args, "--mode", cfg.Mode)
+	args = append(args, "--dapr-http-port", cfg.DaprHttpPort)
+	args = append(args, "--dapr-grpc-port", cfg.DaprGrpcPort)
+	args = append(args, "--dapr-internal-grpc-port", cfg.DaprInternalGrpcPort)
+	args = append(args, "--app-port", cfg.AppPort)
+	args = append(args, "--app-id", cfg.AppId)
+	args = append(args, "--control-plane-address", cfg.ControlPlaneAddress)
+	args = append(args, "--app-protocol", cfg.AppProtocol)
+	args = append(args, "--placement-host-address", cfg.PlacementHostAddress)
+	args = append(args, "--app-max-concurrency", cfg.AppMaxConcurrency)
+	args = append(args, "--sentry-address", cfg.SentryAddress)
+	args = append(args, "--metrics-port", cfg.MetricsPort)
 
 	return &envoy{
 		ProxyConfig: cfg,
@@ -113,7 +139,7 @@ func (e *envoy) args(fname string, epoch int, bootstrapConfig string) []string {
 	if isIPv6Proxy(e.NodeIPs) {
 		proxyLocalAddressType = "v6"
 	}
-	startupArgs := []string{"-c", fname,
+	startupArgs := []string{"start", "--mosn-config", fname,
 		"--restart-epoch", fmt.Sprint(epoch),
 		"--drain-time-s", fmt.Sprint(int(convertDuration(e.Config.DrainDuration) / time.Second)),
 		"--parent-shutdown-time-s", fmt.Sprint(int(convertDuration(e.Config.ParentShutdownDuration) / time.Second)),

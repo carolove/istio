@@ -89,6 +89,19 @@ var (
 	loggingOptions           = log.DefaultOptions()
 	outlierLogPath           string
 
+	mode                 string
+	daprHttpPort         string
+	daprGrpcPort         string
+	daprInternalGrpcPort string
+	appPort              string
+	appId                string
+	controlPlaneAddress  string
+	appProtocol          string
+	placementHostAddress string
+	appMaxConcurrency    string
+	sentryAddress        string
+	metricsPort          string
+
 	instanceIPVar        = env.RegisterStringVar("INSTANCE_IP", "", "")
 	podNameVar           = env.RegisterStringVar("POD_NAME", "", "")
 	podNamespaceVar      = env.RegisterStringVar("POD_NAMESPACE", "", "")
@@ -389,9 +402,23 @@ var (
 			}
 
 			envoyProxy := envoy.NewProxy(envoy.ProxyConfig{
-				Config:              proxyConfig,
-				Node:                role.ServiceNode(),
-				LogLevel:            proxyLogLevel,
+				Config:   proxyConfig,
+				Node:     role.ServiceNode(),
+				LogLevel: proxyLogLevel,
+
+				Mode:                 mode,
+				DaprHttpPort:         daprHttpPort,
+				DaprGrpcPort:         daprGrpcPort,
+				DaprInternalGrpcPort: daprInternalGrpcPort,
+				AppPort:              appPort,
+				AppId:                appId,
+				ControlPlaneAddress:  controlPlaneAddress,
+				AppProtocol:          appProtocol,
+				PlacementHostAddress: placementHostAddress,
+				AppMaxConcurrency:    appMaxConcurrency,
+				SentryAddress:        sentryAddress,
+				MetricsPort:          metricsPort,
+
 				ComponentLogLevel:   proxyComponentLogLevel,
 				PilotSubjectAltName: pilotSAN,
 				MixerSubjectAltName: mixerSAN,
@@ -499,6 +526,20 @@ func init() {
 	proxyCmd.PersistentFlags().StringVar(&proxyLogLevel, "proxyLogLevel", "warning",
 		fmt.Sprintf("The log level used to start the Envoy proxy (choose from {%s, %s, %s, %s, %s, %s, %s})",
 			"trace", "debug", "info", "warning", "error", "critical", "off"))
+
+	proxyCmd.PersistentFlags().StringVar(&mode, "mode", "kubernetes", "dapr mode : kubernetes|local")
+	proxyCmd.PersistentFlags().StringVar(&daprHttpPort, "dapr-http-port", "3500", "dapr http port")
+	proxyCmd.PersistentFlags().StringVar(&daprGrpcPort, "dapr-grpc-port", "50001", "dapr grpc port")
+	proxyCmd.PersistentFlags().StringVar(&daprInternalGrpcPort, "dapr-internal-grpc-port", "50002", "dapr sidecar internal grpc port")
+	proxyCmd.PersistentFlags().StringVar(&appPort, "app-port", "5000", "dapr app port")
+	proxyCmd.PersistentFlags().StringVar(&appId, "app-id", "kubernetes", "dapr app id")
+	proxyCmd.PersistentFlags().StringVar(&controlPlaneAddress, "control-plane-address", "dapr-api.istio-system.svc.cluster.local:80", "dapr operator address")
+	proxyCmd.PersistentFlags().StringVar(&appProtocol, "app-protocol", "http", "dapr app protocol")
+	proxyCmd.PersistentFlags().StringVar(&placementHostAddress, "placement-host-address", "dapr-placement-server.istio-system.svc.cluster.local:50005", "dapr placement address")
+	proxyCmd.PersistentFlags().StringVar(&appMaxConcurrency, "app-max-concurrency", "-1", "max dapr concurrency")
+	proxyCmd.PersistentFlags().StringVar(&sentryAddress, "sentry-address", "dapr-sentry.istio-system.svc.cluster.local:80", "dapr sentry address")
+	proxyCmd.PersistentFlags().StringVar(&metricsPort, "metrics-port", "9090", "dapr metrics port")
+
 	proxyCmd.PersistentFlags().IntVar(&concurrency, "concurrency", 0, "number of worker threads to run")
 	// See https://www.envoyproxy.io/docs/envoy/latest/operations/cli#cmdoption-component-log-level
 	proxyCmd.PersistentFlags().StringVar(&proxyComponentLogLevel, "proxyComponentLogLevel", "misc:error",
